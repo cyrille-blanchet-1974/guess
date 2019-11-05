@@ -3,7 +3,8 @@ use rand::Rng;
 use std::cmp::Ordering;
 
 //Supported languages
-enum Lang
+#[derive(Copy, Clone)]
+ enum Lang
 {
     French,
     English,
@@ -34,6 +35,9 @@ enum Mess
     TooBig,
     Win,
     Lang,
+    NbTries,
+    UnsignedIntegerRequired,
+    NbWins,
 }
 
 //what to write on display given a message and a language
@@ -118,42 +122,129 @@ fn get_message(lang : &Lang, idx : Mess)->String
         {
             res="Choose your language: en=> English fr=>French jp=>japanese\n".to_string();
             res.push_str("Choisissez votre langue: en=> Anglais fr=>Français jp=>Japonais\n");
-            res.push_str("Gengo o sentaku shite kudasai (言語を選択してください): En = > Eigo (英語) fr = > Furansugo (フランス語) jp => Nihon no (日本の)\n");
+            res.push_str("Gengo o sentaku shite kudasai (言語を選択してください): En = > Eigo (英語) fr = > Furansugo (フランス語) jp => Nihon no (日本の)");
+        },
+        Mess::NbTries=>
+        {
+            match lang 
+            {
+                Lang::English  => res="How many tries do you want to guess?".to_string(),
+                Lang::French   => res="En combien d'essais pensez vous trouver ?".to_string(),
+                Lang::Japanese => res="Nankai tameshite mitaidesu ka (何回試してみたいですか)?".to_string(),
+            }
+        },
+        Mess::UnsignedIntegerRequired=>
+        {
+            match lang 
+            {
+                Lang::English  => res="You must enter a number between 1 and 100!".to_string(),
+                Lang::French   => res="Vous devez saisir un nombre entre 1 et 100!".to_string(),
+                Lang::Japanese => res="1 〜 100 No sūji o nyūryoku suru hitsuyō ga arimasu (1〜100の数字を入力する必要があります。)".to_string(),
+            }
+        },
+        Mess::NbWins=>
+        {
+            match lang 
+            {
+                Lang::English  => res="Number of wins:".to_string(),
+                Lang::French   => res="Nombre de victoires:".to_string(),
+                Lang::Japanese => res="Kachi-sū (勝ち数):".to_string(),
+            }
         }
     }
     res
 }
 
-//check if user guessed well
-fn verify(secret : &u32, guess : &u32,lang : &Lang) -> bool
-{
-   let mut res = false;
-   match guess.cmp(secret) {
-        Ordering::Less => 
+//our game
+struct Game{
+    lang : Lang,
+    nb_tries : u32,
+    secret_number : u32
+}
+
+//its private functions
+impl Game{
+    //call global get_message with local lang
+    fn get_message(&self, idx : Mess)->String 
+    {
+        get_message(&self.lang, idx)
+    }
+
+    //main part of the game
+    fn run(&mut self)-> bool
+    {
+        loop
         {
-            let m = get_message(&lang, Mess::TooSmall);
-            println!("{}",m);
-        },
-        Ordering::Greater => 
+            //show how many tries left
+            let m = self.get_message(Mess::TriesLeft);
+            println!("{} {}",m,self.nb_tries);
+            let guess =self.read_guess();
+            let res = self.verify(&guess);
+            if res
+            {
+                //win => message send in verify
+                return true;
+            }
+            self.nb_tries -= 1;
+            //if no tries left then player loosed
+            if self.nb_tries == 0
+            {
+                let m = self.get_message(Mess::Loose);
+                println!("{}",m);
+                //we tell him what was the correct answer
+                let m = self.get_message(Mess::GoodAnswer);
+                println!("{} {}",m,self.secret_number);
+                return false;
+            }
+        }        
+    }
+
+    //ask the user and read his guess
+    fn read_guess(&mut self) -> u32{
+        let m = self.get_message(Mess::YourAnswer);
+        let guess = read(&m);
+        let u32guess: u32 =
+        match guess.parse()
         {
-            let m = get_message(&lang, Mess::TooBig);
-            println!("{}",m);
-        },        
-        Ordering::Equal => 
-        {
-            let m = get_message(&lang, Mess::Win);
-            println!("{}",m);
-            res=true;
-        },
-    }    
-    res
+            Err(_e) => {
+                let m = self.get_message(Mess::UnsignedIntegerRequired);
+                println!("{}",m);
+                self.read_guess()
+            },
+            Ok(v) => v,
+        };
+        u32guess
+    }
+
+    //check if user guessed well
+    fn verify(&self, guess : &u32) -> bool
+    {
+        let mut res = false;//probably loose
+        let m = match guess.cmp(&self.secret_number) {
+                Ordering::Less => 
+                {
+                    Mess::TooSmall
+                },
+                Ordering::Greater => 
+                {
+                    Mess::TooBig
+                },        
+                Ordering::Equal => 
+                {
+                    res=true;//win!
+                    Mess::Win
+                },
+        };
+        let m = self.get_message(m);
+        println!("{}",&m);
+        res
+    }
 }
 
 //ask a question and read user'answer
-fn read(lang : &Lang,mess:Mess) -> String
+fn read(mess :&str) -> String
 {
-    let m = get_message(&lang, mess);
-    println!("{}",m);
+    println!("{}",mess);
     let mut res = String::new();
     io::stdin().read_line(&mut res)
         .expect("Failed to read line");
@@ -161,26 +252,12 @@ fn read(lang : &Lang,mess:Mess) -> String
     res.to_string()
 }
 
-//ask the user and read his guess
-fn read_guess(lang : &Lang) -> u32{
-    /*let m = get_message(&lang, Mess::YourAnswer);
-    println!("{}",m);
-    let mut guess = String::new();
-
-    io::stdin().read_line(&mut guess)
-        .expect("Failed to read line");
-
-    let guess= guess.trim();
-    */
-    let guess = read(&lang,Mess::YourAnswer);
-    let u32guess: u32 = guess.parse().unwrap();
-    u32guess
-}
 
 //ask user what language he prefer until he type something we know
 fn ask_language() -> Lang
 {
-    let lang = read(&Lang::English,Mess::Lang);
+    let m = get_message(&Lang::English,Mess::Lang);
+    let lang = read(&m);
     let lang = string_to_lang(lang);   
     match lang
     {
@@ -189,47 +266,64 @@ fn ask_language() -> Lang
     }
 }
 
+//ask userhow many tries the user wants
+fn ask_tries(lang : &Lang) -> u32
+{
+    let m = get_message(&lang,Mess::NbTries);
+    let tries = read(&m);
+    let tries: u32 = 
+        match tries.parse()
+        {
+            Err(_e) => {
+                let m = get_message(&lang,Mess::UnsignedIntegerRequired);
+                println!("{}",m);
+                ask_tries(&lang)
+            },
+            Ok(v) => v,
+        };
+    tries
+}
+
+//start a new game 
+fn new_game(l : &Lang, tries :&u32) -> bool
+{
+    let secret_number = rand::thread_rng().gen_range(1, 101);
+    let mut game = Game{
+        lang: *l,
+        nb_tries: *tries,
+        secret_number : secret_number};
+    game.run()
+}
 
 //main entry
 fn main() {
-    //langue par défaut
-    //let mut lang = string_to_lang("fr");
-    
+    //first ask the lang   
     let lang = ask_language();
-
-    let m = get_message(&lang, Mess::Welcome);
-    println!("{}",m);
-    /*
-    //surchargée par paramètres si passés (le dernier gagne)
-    let params: Vec<String> = std::env::args().skip(1).collect();
-    for p in params
-    {
-        lang = string_to_lang(&p[..]);
-    }*/
+    //second ask then number of tries
+    let mut tries = ask_tries(&lang);
 
     let m = get_message(&lang, Mess::Welcome);
     println!("{}",m);
 
-    let secret_number = rand::thread_rng().gen_range(1, 101);
-    let mut tries = 5;
+    let mut nb_win=0;
+
+    // loop until users loose increasing the difficulty each turn (one tries less)
     loop
     {
-        let guess = read_guess(&lang);
-        let res = verify(&secret_number,&guess,&lang);
-        if res
+        let res = new_game(&lang,&tries);
+        if !res
         {
+            //show number of victories
+            let m = get_message(&lang, Mess::NbWins);
+            println!("{} {}",m,nb_win);
+
             std::process::exit(0);
         }
-        tries = tries -1;
-        let m = get_message(&lang, Mess::TriesLeft);
-        println!("{} {}",m,tries);
-        if tries == 0
+        else
         {
-            let m = get_message(&lang, Mess::Loose);
-            println!("{}",m);
-            let m = get_message(&lang, Mess::GoodAnswer);
-            println!("{} {}",m,secret_number);
-            std::process::exit(0);
+            nb_win+=1;
+            tries-=1;
         }
     }
+
 }
