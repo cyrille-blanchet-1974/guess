@@ -1,9 +1,4 @@
-//message managing module
-
-//need langage managing to use messages
-mod lang;
-//and we make it public so that we can use it in parents
-pub use lang::*;
+pub use super::lang::*;
 
 //List of user's messages 
 pub enum Mess
