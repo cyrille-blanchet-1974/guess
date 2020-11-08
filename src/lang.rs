@@ -3,19 +3,19 @@
 //Supported languages
 #[derive(Copy, Clone)]
 pub enum Lang {
-  French,
-  English,
-  Japanese,
+    French,
+    English,
+    Japanese,
 }
 
 impl Lang {
-  //found the enul value from a string
-  pub fn string_to_lang(val: String) -> Option<Lang> {
-    match &val[..] {
-      "fr" => Some(Lang::French),
-      "en" => Some(Lang::English),
-      "jp" => Some(Lang::Japanese),
-      _ => None,
+    //found the enul value from a string
+    pub fn string_to_lang(val: String) -> Option<Lang> {
+        match &val[..] {
+            "fr" => Some(Lang::French),
+            "en" => Some(Lang::English),
+            "jp" => Some(Lang::Japanese),
+            _ => None,
+        }
     }
-  }
 }

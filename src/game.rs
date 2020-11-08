@@ -15,9 +15,9 @@ pub struct Game {
 impl Game {
     pub fn new(lang: Lang, nb_tries: u32, secret_number: u32) -> Game {
         Game {
-            lang: lang,
-            nb_tries: nb_tries,
-            secret_number: secret_number,
+            lang,
+            nb_tries,
+            secret_number,
         }
     }
 

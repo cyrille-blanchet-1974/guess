@@ -1,8 +1,7 @@
 pub use super::lang::*;
 
-//List of user's messages 
-pub enum Mess
-{
+//List of user's messages
+pub enum Mess {
     Welcome,
     TriesLeft,
     Loose,
@@ -17,79 +16,78 @@ pub enum Mess
     NbWins,
 }
 
-impl Mess{
+impl Mess {
     //what to write on display given a message and a language
-    pub fn get_message(lang : &Lang, idx : Mess)->String 
-    {
+    pub fn get_message(lang: &Lang, idx: Mess) -> String {
         let mut res;
-        match idx  
+        match idx
         {
-            Mess::Welcome=> 
+            Mess::Welcome=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="Guess the number!".to_string(),
                     Lang::French   => res="Devinez le nombre!".to_string(),
                     Lang::Japanese => res="Sūji o suisoku shite kudasai (数字を推測してください)！".to_string(),
                 }
             },
-            Mess::TriesLeft=> 
+            Mess::TriesLeft=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="Tries left ".to_string(),
                     Lang::French   => res="Essais restant ".to_string(),
                     Lang::Japanese => res="Nokori no tesuto (残りのテスト) ".to_string(),
                 }
             },
-            Mess::Loose=> 
+            Mess::Loose=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="No more tries : you Loose".to_string(),
                     Lang::French   => res="Plus d'essais: vous avez perdu".to_string(),
                     Lang::Japanese => res="Sonohoka no tesuto: Maketa (その他のテスト：負けた) ".to_string(),
                 }
             },
-            Mess::GoodAnswer=> 
+            Mess::GoodAnswer=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="Correct answer was ".to_string(),
                     Lang::French   => res="La bonne réponse était ".to_string(),
                     Lang::Japanese => res="Seikai wa (正解は)".to_string(),
                 }
             },
-            Mess::YourAnswer=> 
+            Mess::YourAnswer=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="Please input your guess.".to_string(),
                     Lang::French   => res="Merci de saisir le nombre de votre choix.".to_string(),
                     Lang::Japanese => res="Sentaku shita bangō o nyūryoku shite kudasai (選択した番号を入力してください。).".to_string(),
                 }
             },
-            Mess::TooSmall=> 
+            Mess::TooSmall=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="Too small!".to_string(),
                     Lang::French   => res="Le nombre est plus grand!".to_string(),
                     Lang::Japanese => res="Kazu ga ōi (数が多い)!".to_string(),
                 }
             },
-            Mess::TooBig=> 
+            Mess::TooBig=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="Too big!".to_string(),
                     Lang::French   => res="Le nombre est plus petit!".to_string(),
                     Lang::Japanese => res="Kazu wa motto sukunai (数はもっと少ない)!".to_string(),
                 }
             },
-            Mess::Win=> 
+            Mess::Win=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="Congratulation: You win!".to_string(),
                     Lang::French   => res="Bravo: vous avez deviné!".to_string(),
@@ -104,7 +102,7 @@ impl Mess{
             },
             Mess::NbTries=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="How many tries do you want to guess?".to_string(),
                     Lang::French   => res="En combien d'essais pensez vous trouver ?".to_string(),
@@ -113,7 +111,7 @@ impl Mess{
             },
             Mess::UnsignedIntegerRequired=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="You must enter a number between 1 and 100!".to_string(),
                     Lang::French   => res="Vous devez saisir un nombre entre 1 et 100!".to_string(),
@@ -122,7 +120,7 @@ impl Mess{
             },
             Mess::NbWins=>
             {
-                match lang 
+                match lang
                 {
                     Lang::English  => res="Number of wins:".to_string(),
                     Lang::French   => res="Nombre de victoires:".to_string(),
